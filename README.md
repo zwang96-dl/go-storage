@@ -1,4 +1,6 @@
 # go-storage
+mysql -u root -h 157.230.169.141 -p
+123456
 
 mysql -u root --password=May@20140515 -h 157.230.169.141
 
@@ -22,5 +24,33 @@ mysql -uroot -h127.0.0.1 -p # connect master
 
 mysql -uroot -h127.0.0.1 -P3307 -p # connect slave
 
+SET GLOBAL server_id=2;
+
 注意！！！主从server id必须不一样！！
 
+CREATE TABLE tbl_test (`user` varchar(64) NOT NULL, `age` int(11) NOT NULL) DEFAULT charset utf8;
+
+INSERT INTO tbl_test (user, age) VALUES ('xiaowang', 18);
+
+
+```
+CREATE DATABASE fileserver DEFAULT character SET utf8;
+
+CREATE TABLE `tbl_file` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `file_sha1` char(40) NOT NULL DEFAULT '' COMMENT 'file hash',
+    `file_name` varchar(256) NOT NULL DEFAULT '' COMMENT 'file name',
+    `file_size` bigint(20) DEFAULT '0' COMMENT 'file size',
+    `file_addr` varchar(1024) NOT NULL DEFAULT '' COMMENT 'file storeage location',
+    `create_at` datetime DEFAULT NOW() COMMENT 'create time',
+    `updated_at` datetime DEFAULT NOW() ON UPDATE current_timestamp() COMMENT 'update date',
+    `status` int(11) NOT NULL DEFAULT '0' COMMENT 'status available disable deleted',
+    `ext1` int(11) DEFAULT '0' COMMENT 'extension 1',
+    `ext2` text COMMENT 'extension 2',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_file_hash` (`file_sha1`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+SHOW CREATE TABLE tbl_file;
