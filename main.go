@@ -9,6 +9,11 @@ import (
 	"github.com/nicemayi/go-storage/handler"
 )
 
+type Demo struct {
+	Name string `json:"myName1"`
+	Age  int    `json:"myAge1"`
+}
+
 func main() {
 	http.Handle("/", http.FileServer(http.Dir("./assets/build")))
 	http.HandleFunc("/file/upload", handler.UploadHandler)
@@ -20,7 +25,11 @@ func main() {
 	http.HandleFunc("/file/delete", handler.FileDeleteHandler)
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("get a ping!")
-		data, _ := json.Marshal("pong from server")
+		d := Demo{
+			Name: "Zhe Wang",
+			Age:  34,
+		}
+		data, _ := json.Marshal(d)
 		time.Sleep(time.Second * 5)
 		w.Write(data)
 	})

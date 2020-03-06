@@ -7,7 +7,7 @@ const Demo = () => {
     useEffect(() => {
         axios.get('/ping').then(resp => {
             console.log(resp);
-            setVal(resp.data);
+            setVal(resp.data.myName1);
         })
     });
 
