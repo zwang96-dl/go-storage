@@ -53,6 +53,43 @@ CREATE TABLE `tbl_file` (
 
 SHOW CREATE TABLE tbl_file;
 
+/data/mysql/conf/master.conf
+[client]
+default-character-set=utf8
+[mysql]
+default-character-set=utf8
+[mysqld]
+log_bin = log  #开启二进制日志，用于从节点的历史复制回放
+collation-server = utf8_unicode_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
+server_id = 1  #需保证主库和从库的server_id不同， 假设主库设为1
+replicate-do-db=fileserver  #需要复制的数据库名，需复制多个数据库的话则重复设置这个选项 (如果想同步所有的数据库，则直接注释这一行配置)
+
+/data/mysql/conf/slave.conf
+[client]
+default-character-set=utf8
+[mysql]
+default-character-set=utf8
+[mysqld]
+log_bin = log  #开启二进制日志，用于从节点的历史复制回放
+collation-server = utf8_unicode_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
+server_id = 2  #需保证主库和从库的server_id不同， 假设从库设为2
+replicate-do-db=fileserver  #需要复制的数据库名，需复制多个数据库的话则重复设置这个选项 (如果想同步所有的数据库，则直接注释这一行配置)
+
+
+mkdir -p /data/mysql/datam
+docker run -d \
+    --name mysql-master \
+    -p 13306:3306 \
+    -v /data/mysql/conf/master.conf:/etc/mysql/mysql.conf.d/mysqld.cnf \
+    -v /data/mysql/datam:/var/lib/mysql  \
+    -e MYSQL_ROOT_PASSWORD
+    mysql:5.7
+
+
 CREATE TABLE `tbl_user` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `user_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'Use name',
