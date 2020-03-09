@@ -2,8 +2,6 @@
 mysql -u root -h 157.230.169.141 -p
 123456
 
-mysql -u root --password=May@20140515 -h 157.230.169.141
-
 docker run --name mysqlmaster -v /Users/zwang/Documents/go-storage/mysql/mysql_db_master:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/masterconf.d:/etc/mysql/conf.d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
 docker run --name mysqlslave -v /Users/zwang/Documents/go-storage/mysql/mysql_db_slave:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/slaveconf.d:/etc/mysql/conf.d -p 3307:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
 
@@ -54,3 +52,20 @@ CREATE TABLE `tbl_file` (
 ```
 
 SHOW CREATE TABLE tbl_file;
+
+CREATE TABLE `tbl_user` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'Use name',
+    `user_pwd` varchar(256) NOT NULL DEFAULT '' COMMENT 'User encoded password',
+    `email` varchar(64) DEFAULT '' COMMENT 'Email address',
+    `phone` varchar(128) DEFAULT '' COMMENT 'Phone number',
+    `email_validated` tinyint(1) DEFAULT 0 COMMENT 'email validated',
+    `phone_validated` tinyint(1) DEFAULT 0 COMMENT 'phone number is validated',
+    `signup_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Register date',
+    `last_active` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last active timestamp',
+    `profile` text COMMENT 'user attribute',
+    `status` int(11) NOT NULL DEFAULT '0' COMMENT 'Account status',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_phone` (`phone`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
