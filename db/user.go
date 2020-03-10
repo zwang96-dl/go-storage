@@ -79,3 +79,33 @@ func UpdateToken(username string, token string) bool {
 	}
 	return true
 }
+
+type User struct {
+	Username     string
+	Email        string
+	Phone        string
+	SignupAt     string
+	LastActiveAt string
+	Status       int
+}
+
+func GetUserInfo(username string) (User, error) {
+	user := User{}
+	stmt, err := mydb.DBConn().Prepare(
+		"SELECT user_name, signup_at FROM tbl_user WHERE user_name=? LIMIT 1",
+	)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return user, err
+	}
+
+	defer stmt.Close()
+
+	err = stmt.QueryRow(username).Scan(&user.Username, &user.SignupAt)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
