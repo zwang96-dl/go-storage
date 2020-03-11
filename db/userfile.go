@@ -1,8 +1,8 @@
 package db
 
 import (
-	mydb "github.com/nicemayi/go-storage/db/mysql"
 	"fmt"
+	mydb "github.com/nicemayi/go-storage/db/mysql"
 	"time"
 )
 
@@ -41,6 +41,7 @@ func QueryUserFileMetas(username string, limit int) ([]UserFile, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer stmt.Close()
 
 	rows, err := stmt.Query(username, limit)
@@ -50,15 +51,15 @@ func QueryUserFileMetas(username string, limit int) ([]UserFile, error) {
 
 	var userFiles []UserFile
 	for rows.Next() {
-		ufile := UserFile{}
-		err = rows.Scan(&ufile.FileHash, &ufile.FileName, &ufile.FileSize,
-			&ufile.UploadAt, &ufile.LastUpdated)
+		uFile := UserFile{}
+		err := rows.Scan(&uFile.FileHash, &uFile.FileName, &uFile.FileSize, &uFile.UploadAt, &uFile.LastUpdated)
 		if err != nil {
 			fmt.Println(err.Error())
 			break
 		}
-		userFiles = append(userFiles, ufile)
+		userFiles = append(userFiles, uFile)
 	}
+
 	return userFiles, nil
 }
 
