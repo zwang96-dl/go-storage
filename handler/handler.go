@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	dblayer "github.com/nicemayi/go-storage/db"
 	"github.com/nicemayi/go-storage/meta"
 	"github.com/nicemayi/go-storage/util"
 )
@@ -57,7 +58,16 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// now save to db
 		_ = meta.UpdateFileMetaDB(fileMeta)
 
-		http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
+		// TODO udpate user file table
+		r.ParseForm()
+		username := r.Form.Get("username")
+
+		suc := dblayer.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
+		if suc {
+			http.Redirect(w, r, "/static/view/home.html", http.StatusFound)
+		} else {
+			w.Write([]byte("Upload Failed."))
+		}
 	}
 }
 
@@ -86,14 +96,20 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 
 func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+
 	limitCnt, _ := strconv.Atoi(r.Form.Get("limit"))
-	fileMetas := meta.GetLastFileMetas(limitCnt)
-	data, err := json.Marshal(fileMetas)
+	username := r.Form.Get("username")
+	userFiles, err := dblayer.QueryUserFileMetas(username, limitCnt)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	data, err := json.Marshal(userFiles)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Write(data)
 }
 
@@ -157,4 +173,44 @@ func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	os.Remove(fMeta.Location)
 	meta.RemoveFile(fileSha1)
 	w.WriteHeader(http.StatusOK)
+}
+
+func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	username := r.Form.Get("username")
+	filehash := r.Form.Get("filehash")
+	filename := r.Form.Get("filename")
+	filesize, _ := strconv.Atoi(r.Form.Get("filesize"))
+
+	fileMeta, err := meta.GetFileMetaDB(filehash)
+	if err != nil {
+		fmt.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if fileMeta.FileSha1 == "" {
+		resp := util.RespMsg{
+			Code: -1,
+			Msg:  "can do fast upload",
+		}
+		w.Write(resp.JSONBytes())
+		return
+	}
+
+	suc := dblayer.OnUserFileUploadFinished(username, filehash, filename, int64(filesize))
+	if suc {
+		resp := util.RespMsg{
+			Code: 0,
+			Msg:  "suc",
+		}
+		w.Write(resp.JSONBytes())
+		return
+	}
+	resp := util.RespMsg{
+		Code: -2,
+		Msg:  "failed",
+	}
+	w.Write(resp.JSONBytes())
 }

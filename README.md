@@ -2,8 +2,6 @@
 mysql -u root -h 157.230.169.141 -p
 123456
 
-mysql -u root --password=May@20140515 -h 157.230.169.141
-
 docker run --name mysqlmaster -v /Users/zwang/Documents/go-storage/mysql/mysql_db_master:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/masterconf.d:/etc/mysql/conf.d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
 docker run --name mysqlslave -v /Users/zwang/Documents/go-storage/mysql/mysql_db_slave:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/slaveconf.d:/etc/mysql/conf.d -p 3307:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
 
@@ -93,10 +91,46 @@ docker run -d \
 
 
 CREATE TABLE `tbl_user` (
-    `id`
-)
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'Use name',
+    `user_pwd` varchar(256) NOT NULL DEFAULT '' COMMENT 'User encoded password',
+    `email` varchar(64) DEFAULT '' COMMENT 'Email address',
+    `phone` varchar(128) DEFAULT '' COMMENT 'Phone number',
+    `email_validated` tinyint(1) DEFAULT 0 COMMENT 'email validated',
+    `phone_validated` tinyint(1) DEFAULT 0 COMMENT 'phone number is validated',
+    `signup_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Register date',
+    `last_active` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last active timestamp',
+    `profile` text COMMENT 'user attribute',
+    `status` int(11) NOT NULL DEFAULT '0' COMMENT 'Account status',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_phone` (`phone`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE `tbl_user_token` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'username',
+    `user_token` char(40) NOT NULL DEFAULT '' COMMENT 'user login token',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_username` (`user_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `tbl_user_file` (
+  `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `user_name` varchar(64) NOT NULL,
+  `file_sha1` varchar(64) NOT NULL DEFAULT '' COMMENT '文件hash',
+  `file_size` bigint(20) DEFAULT '0' COMMENT '文件大小',
+  `file_name` varchar(256) NOT NULL DEFAULT '' COMMENT '文件名',
+  `upload_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+  `last_update` datetime DEFAULT CURRENT_TIMESTAMP 
+          ON UPDATE CURRENT_TIMESTAMP COMMENT '最后修改时间',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '文件状态(0正常1已删除2禁用)',
+  UNIQUE KEY `idx_user_file` (`user_name`, `file_sha1`), // 可以去掉
+  KEY `idx_status` (`status`),
+  KEY `idx_user_id` (`user_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 docker run --name do-redis -v /home/zhe/redis-db:/data -p 6379:6379 -d redis redis-server --appendonly yes
 
 redis-cli -h 157.230.169.141 -p 6379
-
