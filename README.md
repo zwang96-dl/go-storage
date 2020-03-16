@@ -134,3 +134,5 @@ CREATE TABLE `tbl_user_file` (
 docker run --name do-redis -v /home/zhe/redis-db:/data -p 6379:6379 -d redis redis-server --appendonly yes
 
 redis-cli -h 157.230.169.141 -p 6379
+
+0316 morning: stop after finished 6-4
