@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	mydb "github.com/nicemayi/go-storage/db/mysql"
+	mydb "go-storage/db/mysql"
 )
 
 func OnFileUploadFinished(filehash string, filename string, filesize int64, fileaddr string) bool {

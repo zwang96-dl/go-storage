@@ -5,10 +5,15 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	rPool "github.com/nicmayi/go-storage/cache/redis"
-	"github.com/nicmayi/go-storage/util"
+	"fmt"
+	rPool "go-storage/cache/redis"
+	dblayer "go-storage/db"
+	"go-storage/util"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 type MultipartUploadInfo struct {
@@ -24,8 +29,8 @@ func InitMultipartUploadHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. parse
 	r.ParseForm()
 	username := r.Form.Get("username")
-	fielhash := r.Form.Get("filehash")
-	filesize, err := strconv.Atoi(r.Form.Get("filesize"))
+	filehash := r.Form.Get("filehash")
+	filesize, _ := strconv.Atoi(r.Form.Get("filesize"))
 
 	// 2. get redis conn
 	rConn := rPool.RedisPool().Get()
@@ -34,7 +39,7 @@ func InitMultipartUploadHandler(w http.ResponseWriter, r *http.Request) {
 	upInfo := MultipartUploadInfo{
 		FileHash:   filehash,
 		FileSize:   filesize,
-		UploadID:   username + fmt.Srintf("%x", time.Now().UnixNano()),
+		UploadID:   username + fmt.Sprintf("%x", time.Now().UnixNano()),
 		ChunkSize:  5 * 1024 * 1024,
 		ChunkCount: int(math.Ceil(float64(filesize) / (5 * 1024 * 1024))),
 	}
@@ -73,5 +78,47 @@ func UploadPartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rConn.Do("HSET", "MP_"+uploadID, "chkidx_"+chunkIndex, 1)
+	w.Write(util.NewRespMsg(0, "OK", nil).JSONBytes())
+}
+
+func CompleteUploadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	upid := r.Form.Get("uploadid")
+	username := r.Form.Get("username")
+	filehash := r.Form.Get("filehash")
+	filesize := r.Form.Get("filesize")
+	filename := r.Form.Get("filename")
+
+	rConn := rPool.RedisPool().Get()
+	defer rConn.Close()
+
+	rConn.Do("HGETALL", "MP_"+upid)
+	data, err := redis.Values(rConn.Do("HGETALL", "MP_"+upid))
+	if err != nil {
+		w.Write(util.NewRespMsg(-1, "complete upload failed", nil).JSONBytes())
+		return
+	}
+
+	totalCount := 0
+	chunkCount := 0
+	for i := 0; i < len(data); i += 2 {
+		k := string(data[i].([]byte))
+		v := string(data[i+1].([]byte))
+		if k == "chunkCount" {
+			totalCount, _ = strconv.Atoi(v)
+		} else if strings.HasPrefix(k, "chkidx_") && v == "1" {
+			chunkCount++
+		}
+	}
+
+	if totalCount != chunkCount {
+		w.Write(util.NewRespMsg(-2, "invalid request", nil).JSONBytes())
+		return
+	}
+
+	fsize, _ := strconv.Atoi(filesize)
+	dblayer.OnFileUploadFinished(filehash, filename, int64(fsize), "")
+	dblayer.OnUserFileUploadFinished(username, filehash, filename, int64(fsize))
+
 	w.Write(util.NewRespMsg(0, "OK", nil).JSONBytes())
 }

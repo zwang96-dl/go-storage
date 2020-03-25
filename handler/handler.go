@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	dblayer "github.com/nicemayi/go-storage/db"
-	"github.com/nicemayi/go-storage/meta"
-	"github.com/nicemayi/go-storage/util"
+	dblayer "go-storage/db"
+	"go-storage/meta"
+	"go-storage/util"
 )
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {

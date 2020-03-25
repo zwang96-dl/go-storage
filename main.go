@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nicemayi/go-storage/handler"
+	"go-storage/handler"
 )
 
 type Demo struct {
