@@ -1,6 +1,7 @@
 # go-storage
-docker run --name mysqlmaster -v /Users/zwang/Documents/go-storage/mysql/mysql_db_master:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/masterconf.d:/etc/mysql/conf.d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
-docker run --name mysqlslave -v /Users/zwang/Documents/go-storage/mysql/mysql_db_slave:/var/lib/mysql -v /Users/zwang/Documents/go-storage/mysql/slaveconf.d:/etc/mysql/conf.d -p 3307:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
+docker run --name mysqlmaster -v $(pwd)/mysql/mysql_db_master:/var/lib/mysql -v $(pwd)/mysql/masterconf.d:/etc/mysql/conf.d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
+
+docker run --name mysqlslave -v $(pwd)/mysql/mysql_db_slave:/var/lib/mysql -v $(pwd)/mysql/slaveconf.d:/etc/mysql/conf.d -p 3307:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql
 
 docker inspect --format='{{.NetworkSettings.IPAddress}}' mysqlmaster
 docker inspect --format='{{.NetworkSettings.IPAddress}}' mysqlslave
@@ -14,7 +15,7 @@ mysql -u root -h 127.0.0.1 -P 3307 -p
 123456
 
 # Then on mysqlslave
-CHANGE MASTER TO MASTER_HOST='172.17.0.2',MASTER_USER='root',MASTER_PASSWORD='123456',MASTER_LOG_FILE='binlog.000004',MASTER_LOG_POS=155;
+CHANGE MASTER TO MASTER_HOST='172.17.0.3',MASTER_USER='root',MASTER_PASSWORD='123456',MASTER_LOG_FILE='binlog.000002',MASTER_LOG_POS=155;
 
 STOP SLAVE;
 RESET SLAVE;
@@ -29,10 +30,13 @@ mysql -uroot -h127.0.0.1 -p # connect master
 
 mysql -uroot -h127.0.0.1 -P3307 -p # connect slave
 
+SELECT @@server_id;
 SET GLOBAL server_id=2;
 
 注意！！！主从server id必须不一样！！
 
+CREATE DATABASE test;
+USE test;
 CREATE TABLE tbl_test (`user` varchar(64) NOT NULL, `age` int(11) NOT NULL) DEFAULT charset utf8;
 
 INSERT INTO tbl_test (user, age) VALUES ('xiaowang', 18);

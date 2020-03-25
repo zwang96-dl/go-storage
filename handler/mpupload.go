@@ -4,6 +4,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -60,6 +61,9 @@ func UploadPartHandler(w http.ResponseWriter, r *http.Request) {
 
 	rConn := rPool.RedisPool().Get()
 	defer rConn.Close()
+
+	fpath := "/data/" + uploadID + "/" + chunkIndex
+	os.MkdirAll(path.Dir(fpath), 0744)
 
 	fd, err := os.Create("/data/" + uploadID + "/" + chunkIndex)
 	if err != nil {
