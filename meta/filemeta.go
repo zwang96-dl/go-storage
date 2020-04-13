@@ -3,7 +3,7 @@ package meta
 import (
 	"sort"
 
-	mydb "github.com/nicemayi/go-storage/db"
+	mydb "go-storage/db"
 )
 
 type FileMeta struct {

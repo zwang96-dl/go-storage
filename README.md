@@ -6,25 +6,26 @@ docker run --name mysqlslave -v /Users/zwang/Documents/go-storage/mysql/mysql_db
 
 CHANGE MASTER TO MASTER_HOST='YOUR MASTER IP',MASTER_USER='root',MASTER_PASSWORD='YOUR PASSWORD',MASTER_LOG_FILE='binlog.000002',MASTER_LOG_POS=0;
 
-START SLAVE;
 STOP SLAVE;
+RESET SLAVE;
+START SLAVE;
 
 SHOW SLAVE STATUS\G;
-SHOW MASTER STATUS;
 CREATE DATABASE test1 DEFAULT character set utf8;
 
 https://www.jianshu.com/p/ab20e835a73f
-
-docker inspect --format='{{.NetworkSettings.IPAddress}}' 346f2c17bd9a # mysqlslave 172.17.0.3 mysqlmaster 172.17.0.2
 
 mysql -uroot -h127.0.0.1 -p # connect master
 
 mysql -uroot -h127.0.0.1 -P3307 -p # connect slave
 
+SELECT @@server_id;
 SET GLOBAL server_id=2;
 
 注意！！！主从server id必须不一样！！
 
+CREATE DATABASE test;
+USE test;
 CREATE TABLE tbl_test (`user` varchar(64) NOT NULL, `age` int(11) NOT NULL) DEFAULT charset utf8;
 
 INSERT INTO tbl_test (user, age) VALUES ('xiaowang', 18);
@@ -32,7 +33,7 @@ INSERT INTO tbl_test (user, age) VALUES ('xiaowang', 18);
 
 ```
 CREATE DATABASE fileserver DEFAULT character SET utf8;
-
+USE fileserver;
 CREATE TABLE `tbl_file` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `file_sha1` char(40) NOT NULL DEFAULT '' COMMENT 'file hash',

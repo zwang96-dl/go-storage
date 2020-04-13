@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	mydb "github.com/nicemayi/go-storage/db/mysql"
+	mydb "go-storage/db/mysql"
 	"time"
 )
 

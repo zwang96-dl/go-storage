@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	mydb "github.com/nicemayi/go-storage/db/mysql"
+	mydb "go-storage/db/mysql"
 )
 
 func UserSignup(username string, passwd string) bool {

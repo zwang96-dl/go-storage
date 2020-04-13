@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	dblayer "github.com/nicemayi/go-storage/db"
-	"github.com/nicemayi/go-storage/util"
+	dblayer "go-storage/db"
+	"go-storage/util"
 )
 
 const (
